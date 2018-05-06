@@ -62,13 +62,13 @@ button:focus {
 	padding: 5px;
 	cursor: default;
 }
-.focus {
-	background-clip: content-box;
-	box-shadow: inset 0 0 0 5px #f1ea5d;
-}
 .t2, .t5, .t8 {
 	border-right: none;
 }
 .t6, .t7, .t8 {
 	border-bottom: none;
+}
+.focus {
+	background-clip: content-box;
+	box-shadow: inset 0 0 0 5px #f1ea5d;
 }

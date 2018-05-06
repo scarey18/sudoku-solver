@@ -1,5 +1,4 @@
-// Creates the grid and adds EventListeners to allow
-// navigation and number input.
+// Creates the grid and adds EventListeners to allow navigation and number input.
 
 const grid = document.querySelector('.grid');
 
@@ -15,16 +14,16 @@ const squares = document.querySelectorAll('.square');
 let id = 0;
 for (let sqrow = 0; sqrow < 7; sqrow += 3) {
 	for (let trow = 0; trow < 7; trow += 3) {
-		for (let s = 0; s < 3; s++) {
-			const square = squares[sqrow+s];
-			for (let t = 0; t < 3; t++) {
+		for (let s = sqrow; s < sqrow+3; s++) {
+			const square = squares[s];
+			for (let t = trow; t < trow+3; t++) {
 				const tile = document.createElement('div');
 				tile.classList.add('tile');
-				tile.classList.add(`t${trow+t}`);
-				tile.setAttribute('id', id);
-				tile.setAttribute('square', sqrow+s);
+				tile.classList.add(`t${t}`);
+				tile.id = id;
+				tile.setAttribute('square', s);
 				tile.setAttribute('row', Math.floor(id/9));
-				tile.setAttribute('col', id % 9);
+				tile.setAttribute('col', id%9);
 				tile.addEventListener('click', () => setFocus(tile));
 				square.appendChild(tile);
 				id++;
@@ -68,13 +67,31 @@ function moveFocus(key, focused) {
 	}
 }
 
+function checkBoard() {
+	const tiles = document.querySelectorAll('.tile');
+	for (let t1 of tiles) {
+		if (t1.textContent) {
+			t1.style.backgroundColor = '#8080804a';
+			for (let t2 of tiles) {
+				if (t1.textContent == t2.textContent && t1 != t2) {
+					if (t1.getAttribute('square')==t2.getAttribute('square') || t1.getAttribute('row')==t2.getAttribute('row') || t1.getAttribute('col')==t2.getAttribute('col')) {
+						t1.style.backgroundColor = '#ff3939';
+						t2.style.backgroundColor = '#ff3939';
+					}
+				}
+			}
+		}
+	}
+}
+
 function keyDown(key) {
 	const focused = document.querySelector('.focus');
 	const arrowKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'Tab'];
 	if (!focused) {return;}
-	if ('123456789'.indexOf(key) >= 0) {
+	if ('123456789'.indexOf(key) > -1) {
 		focused.textContent = key;
 		focused.style.backgroundColor = '#8080804a';
+		checkBoard();
 	} else if (arrowKeys.includes(key)) {
 		moveFocus(key, focused);
 	} else if (key == 'Backspace' || key == 'Delete') {
@@ -85,4 +102,7 @@ function keyDown(key) {
 	}
 }
 
-window.addEventListener('keydown', (e) => keyDown(e.key));
+window.addEventListener('keydown', function(e) {
+	if (e.key == 'Tab') {e.preventDefault();}
+	keyDown(e.key);
+});

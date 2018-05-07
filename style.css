@@ -9,12 +9,16 @@ html, body {
 }
 .header {
 	border-bottom: 4px solid #8080804f;
+	margin: 0 30px;
 }
 .header h1 {
 	font-size: 3em;
 }
 .header h3, .header p {
 	margin: 0 0 5px 0;
+}
+.buttons {
+	margin-left: 85px;
 }
 button {
 	margin: 20px 0;
@@ -34,6 +38,20 @@ button:hover {
 }
 button:focus {
 	outline: none;
+}
+#reset-button {
+	font-size: 12px;
+	padding: 3px 15px;
+	border-radius: 5px;
+	margin-left: 20px;
+	background: white;
+	color: #3185EA;
+	border-color: #3185EA;
+}
+#reset-button:hover {
+	background: #3185EA;
+	color: white;
+	border-color: transparent;
 }
 .grid {
 	height: 574px;

@@ -1757,6 +1757,22 @@ function setFocus(tile) {
 	tile.classList.add('focus');
 }
 
+function keyDown(key) {
+	const focused = document.querySelector('.focus');
+	const arrowKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'Tab'];
+	if (!focused) {return;}
+	if ('123456789'.includes(key)) {
+		focused.textContent = key;
+		checkBoard();
+	} else if (arrowKeys.includes(key)) {
+		moveFocus(key, focused);
+	} else if (key == 'Backspace' || key == 'Delete') {
+		focused.textContent = '';
+		focused.style.backgroundColor = '';
+		checkBoard();
+	}
+}
+
 function moveFocus(key, focused) {
 	const id = parseInt(focused.id);
 	switch (key) {
@@ -1787,7 +1803,7 @@ function moveFocus(key, focused) {
 }
 
 function checkBoard() {
-	// Checks for conflicting numbers on input
+	// Checks for conflicting numbers on input and sets background color
 	const tiles = document.querySelectorAll('.tile');
 	for (let t1 of tiles) {
 		if (t1.textContent) {
@@ -1807,22 +1823,6 @@ function checkBoard() {
 	}
 }
 
-function keyDown(key) {
-	const focused = document.querySelector('.focus');
-	const arrowKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'Tab'];
-	if (!focused) {return;}
-	if ('123456789'.indexOf(key) > -1) {
-		focused.textContent = key;
-		checkBoard();
-	} else if (arrowKeys.includes(key)) {
-		moveFocus(key, focused);
-	} else if (key == 'Backspace' || key == 'Delete') {
-		focused.textContent = '';
-		focused.style.backgroundColor = '';
-		checkBoard();
-	}
-}
-
 module.exports = {
 	setFocus,
 	moveFocus,
@@ -1831,30 +1831,32 @@ module.exports = {
 }
 
 },{}],3:[function(require,module,exports){
-const grid = require('./gridUtils.js');
+const utils = require('./gridUtils.js');
 const solve = require('./solve.js');
 
-const resetButton = document.getElementById('reset-button');
 const tiles = document.querySelectorAll('.tile');
+const resetButton = document.getElementById('reset-button');
 const solveButton = document.getElementById('solve-button');
+const errorMessage = document.querySelector('.buttons p');
 
 for (let tile of tiles) {
-	tile.addEventListener('click', () => grid.setFocus(tile));
+	tile.addEventListener('click', () => utils.setFocus(tile));
 }
 
 window.addEventListener('keydown', function(e) {
 	if (e.key == 'Tab') {e.preventDefault();}
-	grid.keyDown(e.key);
+	utils.keyDown(e.key);
 });
 
 solveButton.addEventListener('click', function() {
 	for (let tile of tiles) {
 		if (tile.style.backgroundColor == 'rgb(255, 57, 57)') {
-      alert('Make sure your input is correct!');
+      errorMessage.style.visibility = 'visible';
 			return;
 		}
 	}
-  solve.solveBoard();
+	errorMessage.style.visibility = 'hidden';
+    solve.solveBoard();
 });
 
 resetButton.addEventListener('click', () => location.reload());
@@ -1872,7 +1874,6 @@ function solveBoard() {
 		if (tile.textContent) {
 			value = parseInt(tile.textContent);
 		}
-
 		board.push({
 			id: parseInt(tile.id),
 			square: parseInt(tile.getAttribute('square')),
@@ -1893,6 +1894,28 @@ function solveBoard() {
 	}
 }
 
+function clean(board) {
+	// Gets rid of options that are logically eliminated
+	for (let i=0; i<15; i++) {
+		for (let active of activeTiles(board)) {
+			let options = active.options;
+			for (let peer of peers(board, active)) {
+				if (options.includes(peer.value)) {
+					options.splice(options.indexOf(peer.value), 1);
+				}
+			}
+			// If only one option is left, assign the tile that value
+			if (options.length == 1) {
+				active.value = options[0];
+			// If no options are left, a contradiction is raised
+			} else if (options.length == 0) {
+				return;
+			}
+		}
+	}
+	return true;
+}
+
 function recursivelySolve(board) {
 	let tile = chooseTile(board);
 	if (!tile) {return board};
@@ -1904,7 +1927,6 @@ function recursivelySolve(board) {
 			if (test) {return test;}
 		}
 	}
-	return false;
 }
 
 function chooseTile(board) {
@@ -1912,7 +1934,7 @@ function chooseTile(board) {
 		return a.options.length - b.options.length;
 	});
 	if (options) {return options[0];}
-	return false;
+	else {return false;}
 }
 
 function activeTiles(board) {
@@ -1924,27 +1946,6 @@ function peers(board, tile) {
 	const peers = board.filter(tile2 => tile2.square==tile.square || tile2.row==tile.row || tile2.col==tile.col);
 	peers.splice(peers.indexOf(tile), 1);
 	return peers;
-}
-
-function clean(board) {
-	// This eliminates each active tile's options based on the values of its peers, and assigns it a value if there is only one option left.
-	for (let i=0; i<7; i++) {
-		for (let active of activeTiles(board)) {
-			let options = active.options;
-			for (let peer of peers(board, active)) {
-				if (options.includes(peer.value)) {
-					options.splice(options.indexOf(peer.value), 1);
-				}
-			}
-			if (options.length == 1) {
-				active.value = options[0];
-			//If no options are left, a contradiction is raised
-			} else if (options.length == 0) {
-				return;
-			}
-		}
-	}
-	return true;
 }
 
 module.exports = {solveBoard};

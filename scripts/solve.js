@@ -32,7 +32,7 @@ function solveBoard() {
 
 function clean(board) {
 	// Gets rid of options that are logically eliminated
-	for (let i=0; i<7; i++) {
+	for (let i=0; i<15; i++) {
 		for (let active of activeTiles(board)) {
 			let options = active.options;
 			for (let peer of peers(board, active)) {
@@ -63,7 +63,6 @@ function recursivelySolve(board) {
 			if (test) {return test;}
 		}
 	}
-	return false;
 }
 
 function chooseTile(board) {
@@ -71,7 +70,7 @@ function chooseTile(board) {
 		return a.options.length - b.options.length;
 	});
 	if (options) {return options[0];}
-	return false;
+	else {return false;}
 }
 
 function activeTiles(board) {

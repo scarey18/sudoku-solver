@@ -8,7 +8,7 @@ function keyDown(key) {
 	const focused = document.querySelector('.focus');
 	const arrowKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'Tab'];
 	if (!focused) {return;}
-	if ('123456789'.indexOf(key) > -1) {
+	if ('123456789'.includes(key)) {
 		focused.textContent = key;
 		checkBoard();
 	} else if (arrowKeys.includes(key)) {
@@ -50,7 +50,7 @@ function moveFocus(key, focused) {
 }
 
 function checkBoard() {
-	// Checks for conflicting numbers on input
+	// Checks for conflicting numbers on input and sets background color
 	const tiles = document.querySelectorAll('.tile');
 	for (let t1 of tiles) {
 		if (t1.textContent) {

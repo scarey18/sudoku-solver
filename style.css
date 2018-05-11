@@ -18,10 +18,14 @@ html, body {
 	margin: 0 0 5px 0;
 }
 .buttons {
-	margin-left: 85px;
+	margin-right: 138px;
+}
+.buttons p {
+	visibility: hidden;
+	display: inline-block;
 }
 button {
-	margin: 20px 0;
+	margin: 20px 10px;
 	font: bold 17px 'Libre Franklin', sans-serif;
 	padding: 5px 20px;
 	background: #3185EA;
@@ -43,7 +47,6 @@ button:focus {
 	font-size: 12px;
 	padding: 3px 15px;
 	border-radius: 5px;
-	margin-left: 20px;
 	background: white;
 	color: #3185EA;
 	border-color: #3185EA;

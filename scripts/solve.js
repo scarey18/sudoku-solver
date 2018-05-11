@@ -10,7 +10,6 @@ function solveBoard() {
 		if (tile.textContent) {
 			value = parseInt(tile.textContent);
 		}
-
 		board.push({
 			id: parseInt(tile.id),
 			square: parseInt(tile.getAttribute('square')),
@@ -29,6 +28,28 @@ function solveBoard() {
 			tile.textContent = answer[tile.id].value;
 		}
 	}
+}
+
+function clean(board) {
+	// Gets rid of options that are logically eliminated
+	for (let i=0; i<7; i++) {
+		for (let active of activeTiles(board)) {
+			let options = active.options;
+			for (let peer of peers(board, active)) {
+				if (options.includes(peer.value)) {
+					options.splice(options.indexOf(peer.value), 1);
+				}
+			}
+			// If only one option is left, assign the tile that value
+			if (options.length == 1) {
+				active.value = options[0];
+			// If no options are left, a contradiction is raised
+			} else if (options.length == 0) {
+				return;
+			}
+		}
+	}
+	return true;
 }
 
 function recursivelySolve(board) {
@@ -62,27 +83,6 @@ function peers(board, tile) {
 	const peers = board.filter(tile2 => tile2.square==tile.square || tile2.row==tile.row || tile2.col==tile.col);
 	peers.splice(peers.indexOf(tile), 1);
 	return peers;
-}
-
-function clean(board) {
-	// This eliminates each active tile's options based on the values of its peers, and assigns it a value if there is only one option left.
-	for (let i=0; i<7; i++) {
-		for (let active of activeTiles(board)) {
-			let options = active.options;
-			for (let peer of peers(board, active)) {
-				if (options.includes(peer.value)) {
-					options.splice(options.indexOf(peer.value), 1);
-				}
-			}
-			if (options.length == 1) {
-				active.value = options[0];
-			//If no options are left, a contradiction is raised
-			} else if (options.length == 0) {
-				return;
-			}
-		}
-	}
-	return true;
 }
 
 module.exports = {solveBoard};

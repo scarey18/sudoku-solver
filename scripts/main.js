@@ -1,17 +1,17 @@
-const grid = require('./gridUtils.js');
+const utils = require('./gridUtils.js');
 const solve = require('./solve.js');
 
-const resetButton = document.getElementById('reset-button');
 const tiles = document.querySelectorAll('.tile');
+const resetButton = document.getElementById('reset-button');
 const solveButton = document.getElementById('solve-button');
 
 for (let tile of tiles) {
-	tile.addEventListener('click', () => grid.setFocus(tile));
+	tile.addEventListener('click', () => utils.setFocus(tile));
 }
 
 window.addEventListener('keydown', function(e) {
 	if (e.key == 'Tab') {e.preventDefault();}
-	grid.keyDown(e.key);
+	utils.keyDown(e.key);
 });
 
 solveButton.addEventListener('click', function() {

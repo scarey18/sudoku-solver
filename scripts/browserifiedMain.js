@@ -1751,25 +1751,120 @@ module.exports = cloneDeep;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],2:[function(require,module,exports){
-//Solves the given board. This file is included in the browserified.js file
+function setFocus(tile) {
+	const focused = document.querySelector('.focus');
+	if (focused) {focused.classList.remove('focus');}
+	tile.classList.add('focus');
+}
 
-const cloneDeep = require('lodash.clonedeep');
+function moveFocus(key, focused) {
+	const id = parseInt(focused.id);
+	switch (key) {
+		case 'ArrowUp':
+			if (focused.getAttribute('row') != '0') {
+				focused.classList.remove('focus');
+				document.getElementById(id-9).classList.add('focus');
+			}
+			break;
+		case 'ArrowRight': case 'Tab':
+			if (focused.getAttribute('id') != '80') {
+				focused.classList.remove('focus');
+				document.getElementById(id+1).classList.add('focus');
+			}
+			break;
+		case 'ArrowDown':
+			if (focused.getAttribute('row') != '8') {
+				focused.classList.remove('focus');
+				document.getElementById(id+9).classList.add('focus');
+			}
+			break;
+		case 'ArrowLeft':
+			if (focused.getAttribute('id') != '0') {
+				focused.classList.remove('focus');
+				document.getElementById(id-1).classList.add('focus');
+			}
+	}
+}
 
+function checkBoard() {
+	// Checks for conflicting numbers on input
+	const tiles = document.querySelectorAll('.tile');
+	for (let t1 of tiles) {
+		if (t1.textContent) {
+			t1.style.backgroundColor = '#8080804a';
+			t1.style.color = 'black';
+			for (let t2 of tiles) {
+				if (t1.textContent == t2.textContent && t1 != t2) {
+					if (t1.getAttribute('square')==t2.getAttribute('square') || t1.getAttribute('row')==t2.getAttribute('row') || t1.getAttribute('col')==t2.getAttribute('col')) {
+						t1.style.backgroundColor = '#ff3939';
+						t2.style.backgroundColor = '#ff3939';
+						t1.style.color = 'white';
+						t2.style.color = 'white';
+					}
+				}
+			}
+		}
+	}
+}
+
+function keyDown(key) {
+	const focused = document.querySelector('.focus');
+	const arrowKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'Tab'];
+	if (!focused) {return;}
+	if ('123456789'.indexOf(key) > -1) {
+		focused.textContent = key;
+		checkBoard();
+	} else if (arrowKeys.includes(key)) {
+		moveFocus(key, focused);
+	} else if (key == 'Backspace' || key == 'Delete') {
+		focused.textContent = '';
+		focused.style.backgroundColor = '';
+		checkBoard();
+	}
+}
+
+module.exports = {
+	setFocus,
+	moveFocus,
+	checkBoard,
+	keyDown
+}
+
+},{}],3:[function(require,module,exports){
+const grid = require('./gridUtils.js');
+const solve = require('./solve.js');
+
+const resetButton = document.getElementById('reset-button');
 const tiles = document.querySelectorAll('.tile');
 const solveButton = document.getElementById('solve-button');
+
+for (let tile of tiles) {
+	tile.addEventListener('click', () => grid.setFocus(tile));
+}
+
+window.addEventListener('keydown', function(e) {
+	if (e.key == 'Tab') {e.preventDefault();}
+	grid.keyDown(e.key);
+});
 
 solveButton.addEventListener('click', function() {
 	for (let tile of tiles) {
 		if (tile.style.backgroundColor == 'rgb(255, 57, 57)') {
       alert('Make sure your input is correct!');
-			return false;
+			return;
 		}
 	}
-  solveBoard();
+  solve.solveBoard();
 });
 
-function solveBoard() {
+resetButton.addEventListener('click', () => location.reload());
 
+},{"./gridUtils.js":2,"./solve.js":4}],4:[function(require,module,exports){
+const cloneDeep = require('lodash.clonedeep');
+
+const tiles = document.querySelectorAll('.tile');
+
+function solveBoard() {
 	let board = [];
 	for (let i=0; i<81; i++) {
 		const tile = document.getElementById(i);
@@ -1788,63 +1883,8 @@ function solveBoard() {
 		});
 	}
 
-	function activeTiles(board) {
-		return board.filter(tile => tile.value == 0);
-	}
-
-	function peers(board, tile) {
-		// "Peers" are all other tiles within the specified tile's square, column, or row
-		const peers = board.filter(tile2 => tile2.square==tile.square || tile2.row==tile.row || tile2.col==tile.col);
-		peers.splice(peers.indexOf(tile), 1);
-		return peers;
-	}
-
-	function clean(board) {
-		// This eliminates each active tile's options based on the values of its peers, and assigns it a value if there is only one option left.
-		for (let i=0; i<7; i++) {
-			for (let active of activeTiles(board)) {
-				let options = active.options;
-				for (let peer of peers(board, active)) {
-					if (options.includes(peer.value)) {
-						options.splice(options.indexOf(peer.value), 1);
-					}
-				}
-				if (options.length == 1) {
-					active.value = options[0];
-					//If no options are left, a contradiction is raised
-				} else if (options.length == 0) {
-					return false;
-				}
-			}
-		}
-		return true;
-	}
-
-	function chooseTile(board) {
-		// Finds an active tile with the least possible options
-		const options = activeTiles(board).sort(function(a, b) {
-			return a.options.length - b.options.length;
-		});
-		if (options) {return options[0];}
-		return false;
-	}
-
-	function recursive(board) {
-		let tile = chooseTile(board);
-		if (!tile) {return board};
-		for (let option of tile.options) {
-			let copy = cloneDeep(board);
-			copy[tile.id].value = option;
-			if (clean(copy)) {
-				let test = recursive(copy);
-				if (test) {return test;}
-			}
-		}
-		return false;
-	}
-
 	clean(board);
-	const answer = recursive(board);
+	const answer = recursivelySolve(board);
 
 	if (answer) {
 		for (let tile of tiles) {
@@ -1853,4 +1893,60 @@ function solveBoard() {
 	}
 }
 
-},{"lodash.clonedeep":1}]},{},[2]);
+function recursivelySolve(board) {
+	let tile = chooseTile(board);
+	if (!tile) {return board};
+	for (let option of tile.options) {
+		let copy = cloneDeep(board);
+		copy[tile.id].value = option;
+		if (clean(copy)) {
+			let test = recursivelySolve(copy);
+			if (test) {return test;}
+		}
+	}
+	return false;
+}
+
+function chooseTile(board) {
+	const options = activeTiles(board).sort(function(a, b) {
+		return a.options.length - b.options.length;
+	});
+	if (options) {return options[0];}
+	return false;
+}
+
+function activeTiles(board) {
+	return board.filter(tile => tile.value == 0);
+}
+
+function peers(board, tile) {
+	// "Peers" are all other tiles within the specified tile's square, column, or row
+	const peers = board.filter(tile2 => tile2.square==tile.square || tile2.row==tile.row || tile2.col==tile.col);
+	peers.splice(peers.indexOf(tile), 1);
+	return peers;
+}
+
+function clean(board) {
+	// This eliminates each active tile's options based on the values of its peers, and assigns it a value if there is only one option left.
+	for (let i=0; i<7; i++) {
+		for (let active of activeTiles(board)) {
+			let options = active.options;
+			for (let peer of peers(board, active)) {
+				if (options.includes(peer.value)) {
+					options.splice(options.indexOf(peer.value), 1);
+				}
+			}
+			if (options.length == 1) {
+				active.value = options[0];
+			//If no options are left, a contradiction is raised
+			} else if (options.length == 0) {
+				return;
+			}
+		}
+	}
+	return true;
+}
+
+module.exports = {solveBoard};
+
+},{"lodash.clonedeep":1}]},{},[3]);

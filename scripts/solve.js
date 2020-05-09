@@ -1,5 +1,3 @@
-const cloneDeep = require('lodash.clonedeep');
-
 const tiles = document.querySelectorAll('.tile');
 
 function solveBoard() {
@@ -7,8 +5,8 @@ function solveBoard() {
 	for (let i=0; i<81; i++) {
 		const tile = document.getElementById(i);
 		let value = 0;
-		if (tile.textContent) {
-			value = parseInt(tile.textContent);
+		if (tile.value) {
+			value = parseInt(tile.value);
 		}
 		board.push({
 			id: parseInt(tile.id),
@@ -25,14 +23,16 @@ function solveBoard() {
 
 	if (answer) {
 		for (let tile of tiles) {
-			tile.textContent = answer[tile.id].value;
+			tile.value = answer[tile.id].value;
 		}
 	}
 }
 
 function clean(board) {
 	// Gets rid of options that are logically eliminated
-	for (let i=0; i<15; i++) {
+	let changedSomething = true;
+	while (changedSomething) {
+		changedSomething = false;
 		for (let active of activeTiles(board)) {
 			let options = active.options;
 			for (let peer of peers(board, active)) {
@@ -41,11 +41,12 @@ function clean(board) {
 				}
 			}
 			// If only one option is left, assign the tile that value
-			if (options.length == 1) {
+			if (options.length === 1) {
 				active.value = options[0];
+				changedSomething = true;
 			// If no options are left, a contradiction is raised
-			} else if (options.length == 0) {
-				return;
+			} else if (options.length === 0) {
+				return false;
 			}
 		}
 	}
@@ -53,35 +54,42 @@ function clean(board) {
 }
 
 function recursivelySolve(board) {
-	let tile = chooseTile(board);
-	if (!tile) {return board};
+	const actives = activeTiles(board);
+	if (actives.length < 1) return board;
+	const tile = actives[0];
 	for (let option of tile.options) {
-		let copy = cloneDeep(board);
-		copy[tile.id].value = option;
-		if (clean(copy)) {
-			let test = recursivelySolve(copy);
-			if (test) {return test;}
+		let clone = cloneBoard(board);
+		clone[tile.id].value = option;
+		if (clean(clone)) {
+			const solved = recursivelySolve(clone);
+			if (solved) return solved;
 		}
 	}
 }
 
-function chooseTile(board) {
-	const options = activeTiles(board).sort(function(a, b) {
-		return a.options.length - b.options.length;
-	});
-	if (options) {return options[0];}
-	else {return false;}
+function cloneBoard(board) {
+	return board.map(tile => (
+		{
+			...tile,
+			options: [...tile.options],
+		}
+	))
 }
 
 function activeTiles(board) {
-	return board.filter(tile => tile.value == 0);
+	return board.filter(tile => tile.value === 0)
+		.sort((a, b) => a.options.length - b.options.length);
 }
 
 function peers(board, tile) {
 	// "Peers" are all other tiles within the specified tile's square, column, or row
-	const peers = board.filter(tile2 => tile2.square==tile.square || tile2.row==tile.row || tile2.col==tile.col);
-	peers.splice(peers.indexOf(tile), 1);
-	return peers;
+	return board.filter(tile2 => {
+		return tile2 !== tile && (
+			tile2.square === tile.square || 
+			tile2.row === tile.row || 
+			tile2.col === tile.col
+		)
+	});
 }
 
 module.exports = {solveBoard};

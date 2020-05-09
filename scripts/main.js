@@ -11,7 +11,10 @@ for (let tile of tiles) {
 }
 
 window.addEventListener('keydown', function(e) {
-	if (e.key == 'Tab') {e.preventDefault();}
+	const arrowKeys = ['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft', 'Tab'];
+	if (arrowKeys.includes(e.key)) {
+		e.preventDefault();
+	}
 	utils.keyDown(e.key);
 });
 

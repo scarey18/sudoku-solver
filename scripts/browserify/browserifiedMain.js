@@ -82,6 +82,18 @@ const errorMessage = document.querySelector('.buttons p');
 
 for (let tile of tiles) {
 	tile.addEventListener('click', () => utils.setFocus(tile));
+	tile.addEventListener('input', (e) => {
+		if (e.data && e.data > 0 && e.data < 10) {
+			e.target.value = e.data;
+		} else if (e.data < 1) {
+			e.target.value = null;
+		} else if (e.target.value < 1) {
+			e.target.value = null;
+		} else if (e.target.value > 9) {
+			e.target.value = 9;
+		}
+		utils.checkBoard();
+	})
 }
 
 window.addEventListener('keydown', function(e) {
@@ -176,12 +188,16 @@ function recursivelySolve(board) {
 }
 
 function cloneBoard(board) {
-	return board.map(tile => (
-		{
-			...tile,
+	return board.map(tile => {
+		return {
+			id: tile.id,
+			square: tile.square,
+			row: tile.row,
+			col: tile.col,
+			value: tile.value,
 			options: [...tile.options],
 		}
-	))
+	})
 }
 
 function activeTiles(board) {

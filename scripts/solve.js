@@ -68,12 +68,16 @@ function recursivelySolve(board) {
 }
 
 function cloneBoard(board) {
-	return board.map(tile => (
-		{
-			...tile,
+	return board.map(tile => {
+		return {
+			id: tile.id,
+			square: tile.square,
+			row: tile.row,
+			col: tile.col,
+			value: tile.value,
 			options: [...tile.options],
 		}
-	))
+	})
 }
 
 function activeTiles(board) {
